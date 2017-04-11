@@ -10,17 +10,15 @@ import javax.annotation.Nullable;
 public class KeysPreferences {
 
     private final static String PREFERENCES_NAME = "keys_preferences";
-    private final static String KEY_KEY_ALIAS = "key_alis";
+
+    private final static String KEY_KEY_ALIAS = "key_alias";
     private final static String KEY_ENCRYPTED_AES_KEY = "encrypted_aes_key";
 
     private final SharedPreferences preferences;
-    @Nonnull
-    private final Context context;
     private final Editor editor;
 
     public KeysPreferences(@Nonnull final Context context) {
         preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
-        this.context = context;
         editor = new Editor();
     }
 

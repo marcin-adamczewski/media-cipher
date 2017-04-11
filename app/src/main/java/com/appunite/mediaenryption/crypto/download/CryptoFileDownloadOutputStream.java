@@ -19,7 +19,7 @@ public class CryptoFileDownloadOutputStream implements FileDownloadOutputStream 
     private final RandomAccessFile accessFile;
 
     public CryptoFileDownloadOutputStream(@NonNull AESCrypter aesCrypter, @NonNull File file) throws Exception {
-        cipherOutputStream = aesCrypter.getEncryptStream(new FileOutputStream(file));
+        cipherOutputStream = aesCrypter.getEncryptingStream(new FileOutputStream(file));
         accessFile = new RandomAccessFile(file, "rw");
     }
 

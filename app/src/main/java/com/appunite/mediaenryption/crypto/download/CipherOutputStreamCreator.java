@@ -1,24 +1,30 @@
 package com.appunite.mediaenryption.crypto.download;
 
 
-import android.support.annotation.NonNull;
 
-import com.appunite.mediaenryption.LogHelper;
+import com.appunite.mediaenryption.Logger;
 import com.appunite.mediaenryption.crypto.AESCrypter;
+import com.appunite.mediaenryption.crypto.Listener;
 import com.liulishuo.filedownloader.stream.FileDownloadOutputStream;
 import com.liulishuo.filedownloader.util.FileDownloadHelper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 
+import javax.annotation.Nonnull;
+
 
 public class CipherOutputStreamCreator implements FileDownloadHelper.OutputStreamCreator {
 
-    @NonNull
+    @Nonnull
     private final AESCrypter aesCrypter;
+    @Nonnull
+    private final Listener listener;
 
-    public CipherOutputStreamCreator(@NonNull final AESCrypter aesCrypter) {
+    public CipherOutputStreamCreator(@Nonnull final AESCrypter aesCrypter,
+                                     @Nonnull final Listener listener) {
         this.aesCrypter = aesCrypter;
+        this.listener = listener;
     }
 
     @Override
@@ -26,7 +32,8 @@ public class CipherOutputStreamCreator implements FileDownloadHelper.OutputStrea
         try {
             return new CryptoFileDownloadOutputStream(aesCrypter, file);
         } catch (Exception e) {
-            LogHelper.logIfDebug("Cannot create FileDownloadOutputStream with error: " + e.getMessage());
+            listener.onError(e);
+            Logger.logError("Cannot create FileDownloadOutputStream with error: " + e.getMessage());
             return null;
         }
     }

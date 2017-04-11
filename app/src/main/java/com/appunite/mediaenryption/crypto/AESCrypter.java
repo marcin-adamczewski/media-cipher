@@ -7,7 +7,7 @@ import android.support.annotation.Nullable;
 
 
 import com.appunite.mediaenryption.KeysPreferences;
-import com.appunite.mediaenryption.LogHelper;
+import com.appunite.mediaenryption.Logger;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -20,7 +20,6 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.SecretKey;
 
 public abstract class AESCrypter {
-    private static final String TAG = AESCrypter.class.getSimpleName();
 
     protected static final String ANDROID_KEY_STORE = "AndroidKeyStore";
 
@@ -62,7 +61,7 @@ public abstract class AESCrypter {
     protected abstract CipherInputStream getCipherInputStream(@NonNull final InputStream inputStream, @NonNull final SecretKey secretKey) throws Exception;
 
     @Nonnull
-    public synchronized CipherOutputStream getEncryptStream(@NonNull final OutputStream outputStream) throws Exception {
+    public synchronized CipherOutputStream getEncryptingStream(@NonNull final OutputStream outputStream) throws Exception {
         checkInitialized();
 
         final String keyAlias = keysPreferences.getKeyAlias();
@@ -75,13 +74,13 @@ public abstract class AESCrypter {
             clearPreferences();
             tryRefreshKey();
             final SecretKey secretKey = getAESKey(keyAlias);
-            log("refreshed key fetched: ");
+            Logger.logDebug("refreshed key fetched: ");
             return getCipherOutputStream(outputStream, secretKey);
         }
     }
 
     @Nonnull
-    public synchronized CipherInputStream getDecryptStream(@NonNull final InputStream inputStream) throws Exception {
+    public synchronized CipherInputStream getDecryptingStream(@NonNull final InputStream inputStream) throws Exception {
         checkInitialized();
 
         final String keyAlias = keysPreferences.getKeyAlias();
@@ -100,10 +99,10 @@ public abstract class AESCrypter {
     @NonNull
     private SecretKey getOrCreateAesKey(@Nullable final String keyAlias) throws Exception {
         if (keyAlias == null) {
-            log("keyAlias null");
+            Logger.logDebug("keyAlias null");
             return generateAndStoreNewAESKey();
         } else {
-            log("existing key fetched: ");
+            Logger.logDebug("existing key fetched: ");
             return getAESKey(keyAlias);
         }
     }
@@ -115,7 +114,7 @@ public abstract class AESCrypter {
 
     private void tryRefreshKey() throws Exception {
         generateAndStoreNewAESKey();
-        log("key refreshed: ");
+        Logger.logDebug("key refreshed: ");
     }
 
     @NonNull
@@ -131,31 +130,23 @@ public abstract class AESCrypter {
 
     @NonNull
     private SecretKey generateAndStoreNewAESKey() throws Exception {
-        log("Generating new key");
+        Logger.logDebug("Generating new key");
         final String keyAlias = generateKeyAlias();
 
         final SecretKey secretKey = generateNewAESKey(keyAlias);
         keysPreferences.edit().setKeyAlias(keyAlias);
 
-        log("New key generated");
+        Logger.logDebug("New key generated");
 
         return secretKey;
-    }
-
-    private void log(String message) {
-        LogHelper.logIfDebug(TAG, message);
     }
 
     public void setListener(final Listener listener) {
         this.listener = listener;
     }
 
-    public interface Listener {
-        void onKeystoreError(Throwable throwable);
-    }
-
     private void onError(final Exception e) {
-        log("exception  " + e.getMessage());
+        Logger.logError("exception  " + e.getMessage());
         if (listener != null) {
             listener.onKeystoreError(e);
         }

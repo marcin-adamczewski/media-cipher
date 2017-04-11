@@ -9,7 +9,7 @@ import android.security.keystore.KeyProperties;
 import android.support.annotation.NonNull;
 
 import com.appunite.mediaenryption.KeysPreferences;
-import com.appunite.mediaenryption.LogHelper;
+import com.appunite.mediaenryption.Logger;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,7 +37,7 @@ public class AESCrypterMPlus extends AESCrypter {
     @Override
     protected CipherOutputStream getCipherOutputStream(@NonNull final OutputStream outputStream,
                                                        @NonNull final SecretKey secretKey) throws Exception {
-        LogHelper.logIfDebug("getCipherOutputStream " + this.toString());
+        Logger.logDebug("getCipherOutputStream " + this.toString());
         final byte[] initVector = new byte[INIT_VECTOR_SIZE];
         generateInitializationVector(initVector);
 
@@ -51,7 +51,7 @@ public class AESCrypterMPlus extends AESCrypter {
     @Override
     protected CipherInputStream getCipherInputStream(@NonNull final InputStream inputStream,
                                                      @NonNull final SecretKey secretKey) throws Exception {
-        LogHelper.logIfDebug("getCipherInputStream " + this.toString());
+        Logger.logDebug("getCipherInputStream " + this.toString());
         final Cipher decryptCipher = Cipher.getInstance(AES_MODE);
 
         final InitVectorCipherInputStream cipherInputStream = new InitVectorCipherInputStream(inputStream, decryptCipher, INIT_VECTOR_SIZE);

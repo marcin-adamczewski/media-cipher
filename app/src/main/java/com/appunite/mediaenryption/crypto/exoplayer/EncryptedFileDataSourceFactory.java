@@ -1,24 +1,24 @@
 package com.appunite.mediaenryption.crypto.exoplayer;
 
 
-import android.support.annotation.NonNull;
 
 import com.appunite.mediaenryption.crypto.AESCrypter;
 import com.google.android.exoplayer2.upstream.DataSource;
 
+import javax.annotation.Nonnull;
 
-public class AesFileDataSourceFactory implements DataSource.Factory {
 
+public class EncryptedFileDataSourceFactory implements DataSource.Factory {
 
-    @NonNull
+    @Nonnull
     private final AESCrypter aesCrypter;
 
-    public AesFileDataSourceFactory(@NonNull final AESCrypter aesCrypter) {
+    public EncryptedFileDataSourceFactory(@Nonnull final AESCrypter aesCrypter) {
         this.aesCrypter = aesCrypter;
     }
 
     @Override
     public DataSource createDataSource() {
-        return new AesFileDataSource(aesCrypter);
+        return new EncryptedFileDataSource(aesCrypter);
     }
 }

@@ -3,7 +3,7 @@ package com.appunite.mediaenryption.crypto.exoplayer;
 
 import android.net.Uri;
 
-import com.appunite.mediaenryption.LogHelper;
+import com.appunite.mediaenryption.Logger;
 import com.appunite.mediaenryption.crypto.AESCrypter;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.upstream.DataSource;
@@ -17,7 +17,7 @@ import java.io.IOException;
 import javax.crypto.CipherInputStream;
 
 
-public class AesFileDataSource implements DataSource {
+public class EncryptedFileDataSource implements DataSource {
     private static final int MAX_SKIP_BUFFER_SIZE = 2048;
 
     private final AESCrypter aesCrypter;
@@ -26,13 +26,13 @@ public class AesFileDataSource implements DataSource {
     private long bytesRemaining;
     private boolean opened;
 
-    public AesFileDataSource(AESCrypter aesCrypter) {
+    public EncryptedFileDataSource(AESCrypter aesCrypter) {
         this.aesCrypter = aesCrypter;
     }
 
     @Override
     public long open(DataSpec dataSpec) throws EncryptedFileDataSourceException {
-        LogHelper.logIfDebug("open with length: " + dataSpec.length + "    " + this.toString());
+        Logger.logDebug("open with length: " + dataSpec.length + "    " + this.toString());
         // if we're open, we shouldn't need to open again, fast-fail
         if (opened) {
             return bytesRemaining;
@@ -47,12 +47,12 @@ public class AesFileDataSource implements DataSource {
         } catch (IOException e) {
             throw new EncryptedFileDataSourceException(e);
         } catch (Exception e) {
-            LogHelper.logIfDebug("Cannot open data source");
+            Logger.logError("Cannot open data source");
         }
 
         opened = true;
 
-        LogHelper.logIfDebug("bytesRemaining: " + bytesRemaining + "    " + this.toString());
+        Logger.logDebug("bytesRemaining: " + bytesRemaining + "    " + this.toString());
 
         return bytesRemaining;
     }
@@ -60,7 +60,7 @@ public class AesFileDataSource implements DataSource {
     private void setupInputStream() throws Exception {
         final File encryptedFile = new File(uri.getPath());
         final FileInputStream fileInputStream = new FileInputStream(encryptedFile);
-        cipherInputStream = aesCrypter.getDecryptStream(fileInputStream);
+        cipherInputStream = aesCrypter.getDecryptingStream(fileInputStream);
     }
 
     private void skipToPosition(DataSpec dataSpec) throws IOException {
@@ -123,7 +123,7 @@ public class AesFileDataSource implements DataSource {
 
     @Override
     public void close() throws EncryptedFileDataSourceException {
-        LogHelper.logIfDebug("close " + this.toString());
+        Logger.logDebug("close " + this.toString());
         uri = null;
         try {
             if (cipherInputStream != null) {
