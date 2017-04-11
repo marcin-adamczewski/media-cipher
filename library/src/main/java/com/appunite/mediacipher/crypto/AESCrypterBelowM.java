@@ -6,7 +6,6 @@ import android.security.KeyPairGeneratorSpec;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 
-
 import com.appunite.mediacipher.KeysPreferences;
 
 import java.io.ByteArrayInputStream;
@@ -17,9 +16,7 @@ import java.math.BigInteger;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -106,36 +103,35 @@ public class AESCrypterBelowM extends AESCrypter {
     private byte[] rsaEncrypt(byte[] secret, @NonNull String keyAlias) throws Exception {
         final KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(keyAlias, null);
 
-        final Cipher inputCipher = Cipher.getInstance(RSA_MODE, PROVIDER_ANDROID_OPEN_SSL);
-        inputCipher.init(Cipher.ENCRYPT_MODE, privateKeyEntry.getCertificate().getPublicKey());
+        final Cipher rsaEncryptCipher = Cipher.getInstance(RSA_MODE, PROVIDER_ANDROID_OPEN_SSL);
+        rsaEncryptCipher.init(Cipher.ENCRYPT_MODE, privateKeyEntry.getCertificate().getPublicKey());
 
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        final CipherOutputStream cipherOutputStream = new CipherOutputStream(outputStream, inputCipher);
+        final CipherOutputStream cipherOutputStream = new CipherOutputStream(outputStream, rsaEncryptCipher);
         cipherOutputStream.write(secret);
         cipherOutputStream.close();
 
         return outputStream.toByteArray();
     }
 
-    private byte[] rsaDecrypt(byte[] encrypted, @NonNull String keyAlias) throws Exception {
+    private byte[] rsaDecrypt(byte[] encryptedAes, @NonNull String keyAlias) throws Exception {
         final KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(keyAlias, null);
 
-        final Cipher output = Cipher.getInstance(RSA_MODE, PROVIDER_ANDROID_OPEN_SSL);
-        output.init(Cipher.DECRYPT_MODE, privateKeyEntry.getPrivateKey());
+        final Cipher rsaDecryptCipher = Cipher.getInstance(RSA_MODE, PROVIDER_ANDROID_OPEN_SSL);
+        rsaDecryptCipher.init(Cipher.DECRYPT_MODE, privateKeyEntry.getPrivateKey());
 
-        final CipherInputStream cipherInputStream = new CipherInputStream(
-                new ByteArrayInputStream(encrypted), output);
-        List<Byte> values = new ArrayList<>();
-        int nextByte;
-        while ((nextByte = cipherInputStream.read()) != -1) {
-            values.add((byte) nextByte);
+        final CipherInputStream inStream = new CipherInputStream(new ByteArrayInputStream(encryptedAes), rsaDecryptCipher);
+        final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+
+        byte[] buf = new byte[16];
+        while (true) {
+            int read = inStream.read(buf);
+            if (read == -1) {
+                break;
+            }
+            outStream.write(buf, 0, read);
         }
 
-        byte[] bytes = new byte[values.size()];
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = values.get(i);
-        }
-
-        return bytes;
+        return outStream.toByteArray();
     }
 }

@@ -24,28 +24,31 @@ public final class MediaCipher {
     private static volatile MediaCipher singleton;
 
     private final Context context;
+    @Nullable
     private final Listener listener;
     private final Config config;
     private final AESCrypter aesCrypter;
+    private final DownloadMgrInitialParams.InitCustomMaker initCustomMaker;
 
-    public static MediaCipher init(@Nonnull final Context applicationContext) {
-        return init(applicationContext, new Config(), null);
+    public static MediaCipher init(@Nonnull final Context applicationContext, @Nonnull final Listener listener) {
+        return init(applicationContext, new Config(), listener, null);
+    }
+
+    public static MediaCipher init(@Nonnull final Context applicationContext, @Nonnull final Listener listener, @Nonnull Config config) {
+        return init(applicationContext, config, listener, null);
     }
 
     public static MediaCipher init(@Nonnull final Context applicationContext,
-                                   @Nullable final Config config,
-                                   @Nullable final Listener listener) {
-        if (applicationContext instanceof Activity) {
-            throw new IllegalStateException("You have to pass application context instead of activity.");
-        }
+                                   @Nonnull final Config config,
+                                   @Nonnull final Listener listener,
+                                   @Nullable final DownloadMgrInitialParams.InitCustomMaker initCustomMaker) {
+        Checker.checkArgument(!(applicationContext instanceof Activity), "You have to pass application context instead of activity.");
+        Checker.checkArgument(listener != null, "You have to pass Listener to handle keystore error. More in README");
 
         if (singleton == null) {
             synchronized (MediaCipher.class) {
                 if (singleton == null) {
-                    singleton = new MediaCipher(
-                            applicationContext,
-                            config == null ? new Config() : config,
-                            listener);
+                    singleton = new MediaCipher(applicationContext, config, listener, initCustomMaker);
                     singleton.internalInit();
                 }
             }
@@ -54,10 +57,14 @@ public final class MediaCipher {
         return singleton;
     }
 
-    private MediaCipher(final Context context, final Config config, final Listener listener) {
+    private MediaCipher(@Nonnull final Context context,
+                        @Nonnull final Config config,
+                        @Nonnull final Listener listener,
+                        @Nullable DownloadMgrInitialParams.InitCustomMaker initCustomMaker) {
         this.context = context;
         this.config = config;
         this.listener = listener;
+        this.initCustomMaker = initCustomMaker == null ? new DownloadMgrInitialParams.InitCustomMaker() : initCustomMaker;
         final KeysPreferences keysPreferences = new KeysPreferences(context);
         this.aesCrypter = VersionsUtils.isAtLeastMarshMallow() ?
                 new AESCrypterMPlus(context, keysPreferences) : new AESCrypterBelowM(context, keysPreferences);
@@ -71,9 +78,7 @@ public final class MediaCipher {
 
     private void initializeFileDownloadManager() {
         try {
-            final DownloadMgrInitialParams.InitCustomMaker initCustomMaker = new DownloadMgrInitialParams.InitCustomMaker();
             initCustomMaker.outputStreamCreator(new CipherOutputStreamCreator(aesCrypter, listener));
-
             FileDownloader.init(context, initCustomMaker);
         } catch (Exception e) {
             Logger.logError("Cannot initialize file downloader: " + e.getMessage());
