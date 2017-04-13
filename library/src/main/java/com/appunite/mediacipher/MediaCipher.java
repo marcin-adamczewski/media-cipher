@@ -3,20 +3,23 @@ package com.appunite.mediacipher;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.Nullable;
 
 import com.appunite.mediacipher.crypto.AESCrypter;
 import com.appunite.mediacipher.crypto.AESCrypterBelowM;
 import com.appunite.mediacipher.crypto.AESCrypterMPlus;
 import com.appunite.mediacipher.crypto.download.CipherOutputStreamCreator;
-import com.appunite.mediacipher.crypto.exoplayer.EncryptedFileDataSourceFactory;
+import com.appunite.mediacipher.crypto.exoplayer.CyptoFileDataSourceFactory;
 import com.appunite.mediacipher.helpers.Checker;
 import com.appunite.mediacipher.helpers.Logger;
 import com.appunite.mediacipher.helpers.VersionsUtils;
+import com.google.android.exoplayer2.upstream.DataSource;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
 
+import java.io.File;
+
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 
 public final class MediaCipher {
@@ -34,7 +37,7 @@ public final class MediaCipher {
         return init(applicationContext, new Config(), listener, null);
     }
 
-    public static MediaCipher init(@Nonnull final Context applicationContext, @Nonnull final Listener listener, @Nonnull Config config) {
+    public static MediaCipher init(@Nonnull final Context applicationContext, @Nonnull Config config, @Nonnull final Listener listener) {
         return init(applicationContext, config, listener, null);
     }
 
@@ -87,8 +90,8 @@ public final class MediaCipher {
     }
 
     @Nonnull
-    public EncryptedFileDataSourceFactory getEncryptedFileDataSourceFactory() {
-        return new EncryptedFileDataSourceFactory(aesCrypter);
+    public DataSource.Factory getEncryptedFileDataSourceFactory(final File file) throws Exception {
+        return new CyptoFileDataSourceFactory(aesCrypter.getDecryptingKeys(file));
     }
 
     @Nonnull

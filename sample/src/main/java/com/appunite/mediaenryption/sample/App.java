@@ -13,9 +13,9 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        final MediaCipher mediaCipher = MediaCipher.init(this, new Config(Config.LogLevel.DEBUG), new Listener() {
+        MediaCipher.init(this, new Config(Config.LogLevel.DEBUG), new Listener() {
             @Override
-            public void onKeystoreError(final Throwable throwable) {
+            public void onKeyCorrupted(final Throwable throwable) {
 
             }
 

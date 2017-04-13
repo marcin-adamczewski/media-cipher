@@ -48,6 +48,10 @@ public class KeysPreferences {
         public void setEncryptedAESKey(@Nonnull String encryptedAESKey) {
             edit.putString(KEY_ENCRYPTED_AES_KEY, encryptedAESKey).apply();
         }
+
+        public void clear() {
+            edit.clear().apply();
+        }
     }
 
     public Editor edit() {

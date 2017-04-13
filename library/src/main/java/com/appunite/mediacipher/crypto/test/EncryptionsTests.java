@@ -23,7 +23,7 @@ import javax.crypto.CipherOutputStream;
 
 class EncryptionsTests {
 
-    private static final String TAG = "EncryptionsTests";
+/*    private static final String TAG = "EncryptionsTests";
 
     public static void testRandomStringEncryptDecrypt(final AESCrypter aesCrypter) {
         try {
@@ -164,5 +164,5 @@ class EncryptionsTests {
         }
         
         return total;
-    }
+    }*/
 }

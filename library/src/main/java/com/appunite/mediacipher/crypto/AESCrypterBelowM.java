@@ -3,21 +3,19 @@ package com.appunite.mediacipher.crypto;
 
 import android.content.Context;
 import android.security.KeyPairGeneratorSpec;
-import android.support.annotation.NonNull;
 import android.util.Base64;
 
 import com.appunite.mediacipher.KeysPreferences;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.util.Calendar;
 
+import javax.annotation.Nonnull;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
@@ -28,38 +26,17 @@ import javax.security.auth.x500.X500Principal;
 public class AESCrypterBelowM extends AESCrypter {
 
     private static final String RSA_MODE = "RSA/ECB/PKCS1Padding";
-    private static final String AES_MODE = "AES/ECB/NoPadding";
     private static final String RSA_ALGORITHM = "RSA";
     private static final String AES_ALGORITHM = "AES";
     private static final String PROVIDER_ANDROID_OPEN_SSL = "AndroidOpenSSL";
-    private static final String PROVIDER_BC = "BC";
 
-    public AESCrypterBelowM(@NonNull final Context context, @NonNull final KeysPreferences keysPreferences) {
+    public AESCrypterBelowM(@Nonnull final Context context, @Nonnull final KeysPreferences keysPreferences) {
         super(context, keysPreferences);
     }
 
-    @NonNull
+    @Nonnull
     @Override
-    protected CipherOutputStream getCipherOutputStream(@NonNull final OutputStream outputStream,
-                                                       @NonNull final SecretKey secretKey) throws Exception {
-        final Cipher encryptCipher = Cipher.getInstance(AES_MODE, PROVIDER_BC);
-        encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
-
-        return new CipherOutputStream(outputStream, encryptCipher);
-    }
-
-    @NonNull
-    @Override
-    protected CipherInputStream getCipherInputStream(@NonNull final InputStream inputStream, @NonNull final SecretKey secretKey) throws Exception {
-        final Cipher decryptCipher = Cipher.getInstance(AES_MODE, PROVIDER_BC);
-        decryptCipher.init(Cipher.DECRYPT_MODE, secretKey);
-
-        return new AvailableCipherInputStream(inputStream, decryptCipher);
-    }
-
-    @NonNull
-    @Override
-    protected SecretKey getAESKey(@NonNull final String keyAlias) throws Exception {
+    protected SecretKey getAESKey(@Nonnull final String keyAlias) throws Exception {
         final String enryptedKeyB64 = keysPreferences.getEncryptedAESKey();
         final byte[] decodeKey = Base64.decode(enryptedKeyB64, Base64.DEFAULT);
         final byte[] decryptedAES = rsaDecrypt(decodeKey, keyAlias);
@@ -67,9 +44,9 @@ public class AESCrypterBelowM extends AESCrypter {
         return new SecretKeySpec(decryptedAES, AES_ALGORITHM);
     }
 
-    @NonNull
+    @Nonnull
     @Override
-    protected SecretKey generateNewAESKey(@NonNull final String rsaKeyAlias) throws Exception {
+    protected SecretKey generateNewAESKey(@Nonnull final String rsaKeyAlias) throws Exception {
         generateRSAKey(rsaKeyAlias);
 
         byte[] aesKey = new byte[16];
@@ -84,7 +61,7 @@ public class AESCrypterBelowM extends AESCrypter {
         return new SecretKeySpec(aesKey, AES_ALGORITHM);
     }
 
-    private void generateRSAKey(@NonNull final String keyAlias) throws Exception {
+    private void generateRSAKey(@Nonnull final String keyAlias) throws Exception {
         final Calendar start = Calendar.getInstance();
         final Calendar end = Calendar.getInstance();
         end.add(Calendar.YEAR, 30);
@@ -100,7 +77,7 @@ public class AESCrypterBelowM extends AESCrypter {
         kpg.generateKeyPair();
     }
 
-    private byte[] rsaEncrypt(byte[] secret, @NonNull String keyAlias) throws Exception {
+    private byte[] rsaEncrypt(byte[] secret, @Nonnull String keyAlias) throws Exception {
         final KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(keyAlias, null);
 
         final Cipher rsaEncryptCipher = Cipher.getInstance(RSA_MODE, PROVIDER_ANDROID_OPEN_SSL);
@@ -114,7 +91,7 @@ public class AESCrypterBelowM extends AESCrypter {
         return outputStream.toByteArray();
     }
 
-    private byte[] rsaDecrypt(byte[] encryptedAes, @NonNull String keyAlias) throws Exception {
+    private byte[] rsaDecrypt(byte[] encryptedAes, @Nonnull String keyAlias) throws Exception {
         final KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(keyAlias, null);
 
         final Cipher rsaDecryptCipher = Cipher.getInstance(RSA_MODE, PROVIDER_ANDROID_OPEN_SSL);

@@ -1,4 +1,4 @@
-package com.appunite.mediacipher.crypto;
+package com.appunite.mediacipher.crypto.download;
 
 
 import java.io.IOException;

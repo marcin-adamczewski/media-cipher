@@ -17,7 +17,10 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 
+import java.io.File;
+
 import javax.annotation.Nonnull;
+
 
 public class ExoHelper {
 
@@ -28,11 +31,11 @@ public class ExoHelper {
 
     @Nonnull
     public static MediaSource getAudioSource(@Nonnull final Uri uri,
-                                             @Nonnull final Context context) {
+                                             @Nonnull final Context context) throws Exception {
         final DataSource.Factory factory;
 
         if (!URLUtil.isNetworkUrl(uri.toString())) {
-            factory = MediaCipher.getInstance().getEncryptedFileDataSourceFactory();
+            factory = MediaCipher.getInstance().getEncryptedFileDataSourceFactory(new File(uri.getPath()));
         } else {
             factory = new DefaultDataSourceFactory(context, context.getPackageName());
         }
