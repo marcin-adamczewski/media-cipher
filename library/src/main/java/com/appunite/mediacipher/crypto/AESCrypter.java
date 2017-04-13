@@ -88,6 +88,7 @@ public abstract class AESCrypter {
 
             final InitVectorFileInputStream iVFileInputStream = new InitVectorFileInputStream(encryptedFile);
             final IvParameterSpec ivParameterSpec = new IvParameterSpec(iVFileInputStream.getInitVector());
+            iVFileInputStream.close();
 
             final Cipher decryptCipher = Cipher.getInstance(AES_TRANSFORMATION);
             decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);

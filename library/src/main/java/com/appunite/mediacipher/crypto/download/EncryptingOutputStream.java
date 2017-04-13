@@ -13,12 +13,12 @@ import java.io.RandomAccessFile;
 
 import javax.crypto.CipherOutputStream;
 
-public class CryptoFileDownloadOutputStream implements FileDownloadOutputStream {
+public class EncryptingOutputStream implements FileDownloadOutputStream {
 
     private final CipherOutputStream cipherOutputStream;
     private final RandomAccessFile accessFile;
 
-    public CryptoFileDownloadOutputStream(@NonNull AESCrypter aesCrypter, @NonNull File file) throws Exception {
+    public EncryptingOutputStream(@NonNull AESCrypter aesCrypter, @NonNull File file) throws Exception {
         cipherOutputStream = aesCrypter.getEncryptingStream(new FileOutputStream(file));
         accessFile = new RandomAccessFile(file, "rw");
     }

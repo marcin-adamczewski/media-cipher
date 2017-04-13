@@ -13,25 +13,19 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
+import javax.annotation.Nonnull;
 
 
-public final class CryptoFileDataSource implements DataSource {
+public final class EncryptedFileDataSource implements DataSource {
 
+    private final DecryptingKeys decryptingKeys;
     private StreamingCipherInputStream mInputStream;
     private Uri mUri;
     private long mBytesRemaining;
     private boolean mOpened;
-    private Cipher mCipher;
-    private SecretKey mSecretKey;
-    private IvParameterSpec mIvParameterSpec;
 
-    public CryptoFileDataSource(DecryptingKeys decryptingKeys) {
-        mCipher = decryptingKeys.getCipher();
-        mSecretKey = decryptingKeys.getSecretKey();
-        mIvParameterSpec = decryptingKeys.getIvParameterSpec();
+    public EncryptedFileDataSource(@Nonnull final DecryptingKeys decryptingKeys) {
+        this.decryptingKeys = decryptingKeys;
     }
 
     @Override
@@ -58,8 +52,7 @@ public final class CryptoFileDataSource implements DataSource {
 
     private void setupInputStream() throws IOException {
         final File encryptedFile = new File(mUri.getPath());
-        final InitVectorFileInputStream fileInputStream = new InitVectorFileInputStream(encryptedFile);
-        mInputStream = new StreamingCipherInputStream(fileInputStream, mCipher, mSecretKey, mIvParameterSpec);
+        mInputStream = new StreamingCipherInputStream(new InitVectorFileInputStream(encryptedFile), decryptingKeys);
     }
 
     private void skipToPosition(DataSpec dataSpec) throws IOException {
