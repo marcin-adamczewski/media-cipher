@@ -118,7 +118,7 @@ public abstract class AESCrypter {
             Logger.logDebug("keyAlias null");
             return generateAndStoreNewAESKey();
         } else {
-            Logger.logDebug("existing key fetched: ");
+            Logger.logDebug("existing key fetched for alias: " + keyAlias);
             return getAESKey(keyAlias);
         }
     }
@@ -145,14 +145,6 @@ public abstract class AESCrypter {
     private String generateKeyAlias() {
         return String.valueOf(new SecureRandom().nextInt());
     }
-
-/*
-    private synchronized void generateKeyIfNeeded() throws Exception {
-        if (keysPreferences.getKeyAlias() == null) {
-            generateAndStoreNewAESKey();
-        }
-    }
-*/
 
     @Nonnull
     private SecretKey generateAndStoreNewAESKey() throws Exception {
