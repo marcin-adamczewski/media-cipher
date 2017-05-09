@@ -27,7 +27,6 @@ public final class MediaCipher {
     private static volatile MediaCipher singleton;
 
     private final Context context;
-    @Nullable
     private final Listener listener;
     private final Config config;
     private final AESCrypter aesCrypter;
@@ -89,6 +88,10 @@ public final class MediaCipher {
         }
     }
 
+    private static void checkInitialized() {
+        Checker.checkArgument(singleton != null, "You must call init(...) method first.");
+    }
+
     @Nonnull
     public DataSource.Factory getEncryptedFileDataSourceFactory(final File file) throws Exception {
         return new EncryptedFileDataSourceFactory(aesCrypter.getDecryptingKeys(file));
@@ -96,7 +99,7 @@ public final class MediaCipher {
 
     @Nonnull
     public static MediaCipher getInstance() {
-        Checker.checkArgument(singleton != null, "You must call init(...) method first.");
+        checkInitialized();
         return singleton;
     }
 

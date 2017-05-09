@@ -7,7 +7,7 @@ import com.appunite.mediacipher.MediaCipher;
 
 public class Logger {
 
-    private static final String TAG = "MediaEncryption";
+    private static final String TAG = "Media-Cipher";
 
     public static void logDebug(final String message) {
         if (isDebugLoggingEnabled()) {

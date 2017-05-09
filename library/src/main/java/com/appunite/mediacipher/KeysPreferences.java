@@ -1,26 +1,24 @@
 package com.appunite.mediacipher;
 
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.SharedPreferences;
+
+import net.grandcentrix.tray.AppPreferences;
+import net.grandcentrix.tray.TrayPreferences;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class KeysPreferences {
-
-    private final static String PREFERENCES_NAME = "keys_preferences";
+public class KeysPreferences extends TrayPreferences {
 
     private final static String KEY_KEY_ALIAS = "key_alias";
     private final static String KEY_ENCRYPTED_AES_KEY = "encrypted_aes_key";
 
-    private final SharedPreferences preferences;
-    private final Editor editor;
+    private final AppPreferences preferences;
 
     public KeysPreferences(@Nonnull final Context context) {
-        preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
-        editor = new Editor();
+        super(context, "keyPresModule", 1);
+        preferences = new AppPreferences(context);
     }
 
     @Nullable
@@ -33,29 +31,12 @@ public class KeysPreferences {
         return preferences.getString(KEY_ENCRYPTED_AES_KEY, null);
     }
 
-    public class Editor {
-        private final SharedPreferences.Editor edit;
-
-        @SuppressLint("CommitPrefEdits")
-        public Editor() {
-            edit = preferences.edit();
-        }
-
-        public void setKeyAlias(@Nonnull String alias) {
-            edit.putString(KEY_KEY_ALIAS, alias).apply();
-        }
-
-        public void setEncryptedAESKey(@Nonnull String encryptedAESKey) {
-            edit.putString(KEY_ENCRYPTED_AES_KEY, encryptedAESKey).apply();
-        }
-
-        public void clear() {
-            edit.clear().apply();
-        }
+    public void setKeyAlias(@Nonnull String alias) {
+        preferences.put(KEY_KEY_ALIAS, alias);
     }
 
-    public Editor edit() {
-        return editor;
+    public void setEncryptedAESKey(@Nonnull String encryptedAESKey) {
+        preferences.put(KEY_ENCRYPTED_AES_KEY, encryptedAESKey);
     }
 }
 
