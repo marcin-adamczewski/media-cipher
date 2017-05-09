@@ -8,6 +8,7 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 
 import com.appunite.mediacipher.KeysPreferences;
+import com.appunite.mediacipher.helpers.Checker;
 
 import java.security.KeyStore;
 
@@ -26,6 +27,7 @@ public class AESCrypterMPlus extends AESCrypter {
     @Override
     protected SecretKey getAESKey(@Nonnull final String keyAlias) throws Exception {
         final KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) keyStore.getEntry(keyAlias, null);
+        Checker.checkNotNull(secretKeyEntry, "Key entry is null for alias: " + keyAlias);
         return secretKeyEntry.getSecretKey();
     }
 

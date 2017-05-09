@@ -6,6 +6,7 @@ import android.security.KeyPairGeneratorSpec;
 import android.util.Base64;
 
 import com.appunite.mediacipher.KeysPreferences;
+import com.appunite.mediacipher.helpers.Checker;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -56,7 +57,7 @@ public class AESCrypterBelowM extends AESCrypter {
         byte[] encryptedKey = rsaEncrypt(aesKey, rsaKeyAlias);
         final String enryptedKeyB64 = Base64.encodeToString(encryptedKey, Base64.DEFAULT);
 
-        keysPreferences.edit().setEncryptedAESKey(enryptedKeyB64);
+        keysPreferences.setEncryptedAESKey(enryptedKeyB64);
 
         return new SecretKeySpec(aesKey, AES_ALGORITHM);
     }
@@ -78,7 +79,7 @@ public class AESCrypterBelowM extends AESCrypter {
     }
 
     private byte[] rsaEncrypt(byte[] secret, @Nonnull String keyAlias) throws Exception {
-        final KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(keyAlias, null);
+        final KeyStore.PrivateKeyEntry privateKeyEntry = getKeystoreEntry(keyAlias);
 
         final Cipher rsaEncryptCipher = Cipher.getInstance(RSA_MODE, PROVIDER_ANDROID_OPEN_SSL);
         rsaEncryptCipher.init(Cipher.ENCRYPT_MODE, privateKeyEntry.getCertificate().getPublicKey());
@@ -92,7 +93,7 @@ public class AESCrypterBelowM extends AESCrypter {
     }
 
     private byte[] rsaDecrypt(byte[] encryptedAes, @Nonnull String keyAlias) throws Exception {
-        final KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(keyAlias, null);
+        final KeyStore.PrivateKeyEntry privateKeyEntry = getKeystoreEntry(keyAlias);
 
         final Cipher rsaDecryptCipher = Cipher.getInstance(RSA_MODE, PROVIDER_ANDROID_OPEN_SSL);
         rsaDecryptCipher.init(Cipher.DECRYPT_MODE, privateKeyEntry.getPrivateKey());
@@ -110,5 +111,13 @@ public class AESCrypterBelowM extends AESCrypter {
         }
 
         return outStream.toByteArray();
+    }
+
+    @Nonnull
+    private KeyStore.PrivateKeyEntry getKeystoreEntry(@Nonnull String keyAlias) throws Exception {
+        final KeyStore.PrivateKeyEntry keyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(keyAlias, null);
+        Checker.checkNotNull(keyEntry, "Key entry is null for keyAlias: " + keyAlias);
+
+        return keyEntry;
     }
 }

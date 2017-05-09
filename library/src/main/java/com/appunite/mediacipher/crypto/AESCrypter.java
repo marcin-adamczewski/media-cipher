@@ -50,9 +50,8 @@ public abstract class AESCrypter {
             keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
             keyStore.load(null);
             isInitialized = true;
-            generateKeyIfNeeded();
         } catch (Exception e) {
-            onError(e);
+            listener.onError(e);
         }
     }
 
@@ -70,6 +69,7 @@ public abstract class AESCrypter {
             final SecretKey secretKey = getOrCreateAesKey(keyAlias);
             return getCipherOutputStream(outputStream, secretKey);
         } catch (Exception e) {
+            onError(e);
             removeKeyIfCorruptedAndGenerateNewOne(e);
             final SecretKey secretKey = getAESKey(keyAlias);
             Logger.logDebug("Refreshed key fetched");
@@ -88,6 +88,7 @@ public abstract class AESCrypter {
 
             final InitVectorFileInputStream iVFileInputStream = new InitVectorFileInputStream(encryptedFile);
             final IvParameterSpec ivParameterSpec = new IvParameterSpec(iVFileInputStream.getInitVector());
+            iVFileInputStream.close();
 
             final Cipher decryptCipher = Cipher.getInstance(AES_TRANSFORMATION);
             decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
@@ -111,7 +112,6 @@ public abstract class AESCrypter {
         return new InitVectorCipherOutputStream(outputStream, encryptCipher, initVector);
     }
 
-
     @Nonnull
     private SecretKey getOrCreateAesKey(@Nullable final String keyAlias) throws Exception {
         if (keyAlias == null) {
@@ -125,7 +125,7 @@ public abstract class AESCrypter {
 
     private void removeKeyIfCorruptedAndGenerateNewOne(final Exception error) throws Exception {
         if (!isKeyCorrupted(error)) {
-            keysPreferences.edit().clear();
+            keysPreferences.clear();
             tryRefreshKey();
         }
     }
@@ -146,11 +146,13 @@ public abstract class AESCrypter {
         return String.valueOf(new SecureRandom().nextInt());
     }
 
+/*
     private synchronized void generateKeyIfNeeded() throws Exception {
         if (keysPreferences.getKeyAlias() == null) {
             generateAndStoreNewAESKey();
         }
     }
+*/
 
     @Nonnull
     private SecretKey generateAndStoreNewAESKey() throws Exception {
@@ -158,9 +160,9 @@ public abstract class AESCrypter {
 
         final String keyAlias = generateKeyAlias();
         final SecretKey secretKey = generateNewAESKey(keyAlias);
-        keysPreferences.edit().setKeyAlias(keyAlias);
+        keysPreferences.setKeyAlias(keyAlias);
 
-        Logger.logDebug("New aes key generated");
+        Logger.logDebug("New aes key generated for keyAlias: " + keyAlias);
 
         return secretKey;
     }

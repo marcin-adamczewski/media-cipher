@@ -7,8 +7,8 @@ import android.content.Context;
 import com.appunite.mediacipher.crypto.AESCrypter;
 import com.appunite.mediacipher.crypto.AESCrypterBelowM;
 import com.appunite.mediacipher.crypto.AESCrypterMPlus;
-import com.appunite.mediacipher.crypto.download.CipherOutputStreamCreator;
-import com.appunite.mediacipher.crypto.exoplayer.CyptoFileDataSourceFactory;
+import com.appunite.mediacipher.crypto.download.EncryptingOutputStreamCreator;
+import com.appunite.mediacipher.crypto.exoplayer.EncryptedFileDataSourceFactory;
 import com.appunite.mediacipher.helpers.Checker;
 import com.appunite.mediacipher.helpers.Logger;
 import com.appunite.mediacipher.helpers.VersionsUtils;
@@ -27,7 +27,6 @@ public final class MediaCipher {
     private static volatile MediaCipher singleton;
 
     private final Context context;
-    @Nullable
     private final Listener listener;
     private final Config config;
     private final AESCrypter aesCrypter;
@@ -81,7 +80,7 @@ public final class MediaCipher {
 
     private void initializeFileDownloadManager() {
         try {
-            initCustomMaker.outputStreamCreator(new CipherOutputStreamCreator(aesCrypter, listener));
+            initCustomMaker.outputStreamCreator(new EncryptingOutputStreamCreator(aesCrypter, listener));
             FileDownloader.init(context, initCustomMaker);
         } catch (Exception e) {
             Logger.logError("Cannot initialize file downloader: " + e.getMessage());
@@ -89,14 +88,18 @@ public final class MediaCipher {
         }
     }
 
+    private static void checkInitialized() {
+        Checker.checkArgument(singleton != null, "You must call init(...) method first.");
+    }
+
     @Nonnull
     public DataSource.Factory getEncryptedFileDataSourceFactory(final File file) throws Exception {
-        return new CyptoFileDataSourceFactory(aesCrypter.getDecryptingKeys(file));
+        return new EncryptedFileDataSourceFactory(aesCrypter.getDecryptingKeys(file));
     }
 
     @Nonnull
     public static MediaCipher getInstance() {
-        Checker.checkArgument(singleton != null, "You must call init(...) method first.");
+        checkInitialized();
         return singleton;
     }
 

@@ -14,15 +14,15 @@ import java.io.FileNotFoundException;
 import javax.annotation.Nonnull;
 
 
-public class CipherOutputStreamCreator implements FileDownloadHelper.OutputStreamCreator {
+public class EncryptingOutputStreamCreator implements FileDownloadHelper.OutputStreamCreator {
 
     @Nonnull
     private final AESCrypter aesCrypter;
     @Nonnull
     private final Listener listener;
 
-    public CipherOutputStreamCreator(@Nonnull final AESCrypter aesCrypter,
-                                     @Nonnull final Listener listener) {
+    public EncryptingOutputStreamCreator(@Nonnull final AESCrypter aesCrypter,
+                                         @Nonnull final Listener listener) {
         this.aesCrypter = aesCrypter;
         this.listener = listener;
     }
@@ -30,7 +30,7 @@ public class CipherOutputStreamCreator implements FileDownloadHelper.OutputStrea
     @Override
     public FileDownloadOutputStream create(final File file) throws FileNotFoundException {
         try {
-            return new CryptoFileDownloadOutputStream(aesCrypter, file);
+            return new EncryptingOutputStream(aesCrypter, file);
         } catch (Exception e) {
             listener.onError(e);
             Logger.logError("Cannot create FileDownloadOutputStream with error: " + e.getMessage());

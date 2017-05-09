@@ -9,7 +9,7 @@ import java.io.IOException;
 
 /**
  * CipherInputStream that reads initialization vector from first $initVectorSize bytes so Cipher can be initialized
- * with this vector and inputStream offset will be increased so initialization vector won't be considered while decrypting data
+ * with this vector and inputStream offset will be changed so initialization vector won't be considered while decrypting data
  */
 public class InitVectorFileInputStream extends FileInputStream {
 

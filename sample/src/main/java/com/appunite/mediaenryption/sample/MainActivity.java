@@ -30,7 +30,7 @@ import java.io.IOException;
 public class MainActivity extends AppCompatActivity {
 
     private static final String EXTRA_URL = "extra_url";
-    private static final String SAMPLE_MP3_URL = "http://www.stephaniequinn.com/Music/Commercial%20DEMO%20-%2011.mp3";
+    private static final String SAMPLE_MP3_URL = "http://www.noiseaddicts.com/samples_1w72b820/4250.mp3";
     private static final String SAMPLE_MP4_URL = "https://dwknz3zfy9iu1.cloudfront.net/uscenes_h-264_hd_test.mp4";
 
     private static final String DOWNLOAD_PATH = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/encodedMp3File";
@@ -68,10 +68,14 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(MainActivity.this, "Media downloaded and encrypted", Toast.LENGTH_SHORT).show();
-                        assertThatDownloadedFileIsNotAudioFile();
-                        preparePlayerAndPlay(DOWNLOAD_PATH);
-                        downloadingProgressTv.setText(null);
+                        if (task.getErrorCause() == null) {
+                            Toast.makeText(MainActivity.this, "Media downloaded and encrypted", Toast.LENGTH_SHORT).show();
+                            assertThatDownloadedFileIsNotAudioFile();
+                            preparePlayerAndPlay(DOWNLOAD_PATH);
+                            downloadingProgressTv.setText(null);
+                        } else {
+                            Toast.makeText(MainActivity.this, "Cannot download the file with error: " + task.getErrorCause().getMessage(), Toast.LENGTH_LONG).show();
+                        }
                     }
                 });
             }
@@ -87,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void assertThatDownloadedFileIsNotAudioFile() {
         try {
-            Checker.checkArgument(new File(DOWNLOAD_PATH).exists());
+            Checker.checkArgument(new File(DOWNLOAD_PATH).exists(), "No such file in path: " + DOWNLOAD_PATH);
             final MediaExtractor mediaExtractor = new MediaExtractor();
             mediaExtractor.setDataSource(DOWNLOAD_PATH);
         } catch (IOException e) {
