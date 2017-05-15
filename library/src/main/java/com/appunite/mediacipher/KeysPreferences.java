@@ -5,6 +5,7 @@ import android.content.Context;
 
 import net.grandcentrix.tray.AppPreferences;
 import net.grandcentrix.tray.TrayPreferences;
+import net.grandcentrix.tray.core.TrayStorage;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,7 +18,7 @@ public class KeysPreferences extends TrayPreferences {
     private final AppPreferences preferences;
 
     public KeysPreferences(@Nonnull final Context context) {
-        super(context, "keyPresModule", 1);
+        super(context, "keyPresModule", 1, TrayStorage.Type.DEVICE);
         preferences = new AppPreferences(context);
     }
 
