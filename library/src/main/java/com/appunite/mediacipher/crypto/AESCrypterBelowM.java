@@ -2,6 +2,8 @@ package com.appunite.mediacipher.crypto;
 
 
 import android.content.Context;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.security.KeyPairGeneratorSpec;
 import android.util.Base64;
 
@@ -15,6 +17,7 @@ import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.util.Calendar;
+import java.util.Locale;
 
 import javax.annotation.Nonnull;
 import javax.crypto.Cipher;
@@ -63,6 +66,9 @@ public class AESCrypterBelowM extends AESCrypter {
     }
 
     private void generateRSAKey(@Nonnull final String keyAlias) throws Exception {
+        final Locale localeBeforeFakingEnglishLocale = Locale.getDefault();
+        setFakeEnglishLocale();
+
         final Calendar start = Calendar.getInstance();
         final Calendar end = Calendar.getInstance();
         end.add(Calendar.YEAR, 30);
@@ -76,6 +82,8 @@ public class AESCrypterBelowM extends AESCrypter {
         final KeyPairGenerator kpg = KeyPairGenerator.getInstance(RSA_ALGORITHM, ANDROID_KEY_STORE);
         kpg.initialize(spec);
         kpg.generateKeyPair();
+
+        setLocale(localeBeforeFakingEnglishLocale);
     }
 
     private byte[] rsaEncrypt(byte[] secret, @Nonnull String keyAlias) throws Exception {
@@ -119,5 +127,21 @@ public class AESCrypterBelowM extends AESCrypter {
         Checker.checkNotNull(keyEntry, "Key entry is null for keyAlias: " + keyAlias);
 
         return keyEntry;
+    }
+
+    /**
+     * Workaround for known date parsing issue in KeyPairGenerator class
+     * https://issuetracker.google.com/issues/37095309
+     */
+    private void setFakeEnglishLocale() {
+        setLocale(Locale.ENGLISH);
+    }
+
+    private void setLocale(final Locale locale) {
+        Locale.setDefault(locale);
+        final Resources resources = context.getResources();
+        final Configuration config = resources.getConfiguration();
+        config.locale = locale;
+        resources.updateConfiguration(config, resources.getDisplayMetrics());
     }
 }
