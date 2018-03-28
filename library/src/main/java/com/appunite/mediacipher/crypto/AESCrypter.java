@@ -71,7 +71,7 @@ public abstract class AESCrypter {
         } catch (Exception e) {
             onError(e);
             removeKeyIfCorruptedAndGenerateNewOne(e);
-            final SecretKey secretKey = getAESKey(keyAlias);
+            final SecretKey secretKey = getAESKey(keysPreferences.getKeyAlias());
             Logger.logDebug("Refreshed key fetched");
             return getCipherOutputStream(outputStream, secretKey);
         }
@@ -124,7 +124,7 @@ public abstract class AESCrypter {
     }
 
     private void removeKeyIfCorruptedAndGenerateNewOne(final Exception error) throws Exception {
-        if (!isKeyCorrupted(error)) {
+        if (isKeyCorrupted(error)) {
             keysPreferences.clear();
             tryRefreshKey();
         }
