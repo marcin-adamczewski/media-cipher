@@ -1,1 +1,2 @@
-include ':sample', ':library'
+include ':sample', ':library', ':okdownload2'
+project(':okdownload2').projectDir = new File('okdownload/okdownload')
