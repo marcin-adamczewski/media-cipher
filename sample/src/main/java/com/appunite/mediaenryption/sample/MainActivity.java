@@ -8,8 +8,10 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -19,10 +21,11 @@ import com.appunite.mediacipher.helpers.Checker;
 import com.appunite.mediaenryption.R;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
-import com.liulishuo.filedownloader.BaseDownloadTask;
-import com.liulishuo.filedownloader.FileDownloadListener;
-import com.liulishuo.filedownloader.FileDownloadSampleListener;
-import com.liulishuo.filedownloader.FileDownloader;
+import com.liulishuo.okdownload.DownloadTask;
+import com.liulishuo.okdownload.core.cause.EndCause;
+import com.liulishuo.okdownload.core.cause.ResumeFailedCause;
+import com.liulishuo.okdownload.core.listener.DownloadListener3;
+import com.liulishuo.okdownload.core.listener.assist.Listener1Assist;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,12 +34,11 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String EXTRA_URL = "extra_url";
     private static final String SAMPLE_MP3_URL = "http://www.noiseaddicts.com/samples_1w72b820/4250.mp3";
-    private static final String SAMPLE_MP4_URL = "https://dwknz3zfy9iu1.cloudfront.net/uscenes_h-264_hd_test.mp4";
+    private static final String SAMPLE_MP4_URL = "http://techslides.com/demos/samples/sample.mp4";
 
     private static final String DOWNLOAD_PATH = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/encodedMp3File";
 
     private String mediaDownloadUrl;
-    private BaseDownloadTask.FinishListener downloadFinishedListener;
     private SimpleExoPlayer exoPlayer;
     private TextView downloadingProgressTv;
 
@@ -61,25 +63,6 @@ public class MainActivity extends AppCompatActivity {
                         mediaDownloadUrl = checkedId == R.id.radio_mp3 ? SAMPLE_MP3_URL : SAMPLE_MP4_URL;
                     }
                 });
-
-        downloadFinishedListener = new BaseDownloadTask.FinishListener() {
-            @Override
-            public void over(final BaseDownloadTask task) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (task.getErrorCause() == null) {
-                            Toast.makeText(MainActivity.this, "Media downloaded and encrypted", Toast.LENGTH_SHORT).show();
-                            assertThatDownloadedFileIsNotAudioFile();
-                            preparePlayerAndPlay(DOWNLOAD_PATH);
-                            downloadingProgressTv.setText(null);
-                        } else {
-                            Toast.makeText(MainActivity.this, "Cannot download the file with error: " + task.getErrorCause().getMessage(), Toast.LENGTH_LONG).show();
-                        }
-                    }
-                });
-            }
-        };
 
         findViewById(R.id.init_btn).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,25 +92,66 @@ public class MainActivity extends AppCompatActivity {
             file.delete();
         }
 
-        final FileDownloadListener fileDownloadListener = new FileDownloadSampleListener() {
+        final DownloadListener3 listener = new DownloadListener3() {
             @Override
-            protected void progress(final BaseDownloadTask task, final int soFarBytes, final int totalBytes) {
-                super.progress(task, soFarBytes, totalBytes);
-                final int progress = (int) (100 * (float) soFarBytes / (float) totalBytes);
+            public void retry(@NonNull final DownloadTask task, @NonNull final ResumeFailedCause cause) {
+
+            }
+
+            @Override
+            public void connected(@NonNull final DownloadTask task, final int blockCount, final long currentOffset, final long totalLength) {
+
+            }
+
+            @Override
+            public void progress(@NonNull final DownloadTask task, final long currentOffset, final long totalLength) {
+                final int progress = (int) (100 * (float) currentOffset / (float) totalLength);
                 downloadingProgressTv.setText("Downloading progress: " + progress + " %");
+            }
+
+            @Override
+            public void taskEnd(@NonNull final DownloadTask task, @NonNull final EndCause cause, @Nullable final Exception realCause, @NonNull final Listener1Assist.Listener1Model model) {
+                if (cause == EndCause.COMPLETED) {
+                    Toast.makeText(MainActivity.this, "Media downloaded and encrypted", Toast.LENGTH_SHORT).show();
+                    assertThatDownloadedFileIsNotAudioFile();
+                    preparePlayerAndPlay(DOWNLOAD_PATH);
+                    downloadingProgressTv.setText(null);
+                } else {
+                    Log.e("lol", "error: " + realCause);
+                }
+            }
+
+            @Override
+            protected void started(@NonNull final DownloadTask task) {
+
+            }
+
+            @Override
+            protected void completed(@NonNull final DownloadTask task) {
+
+            }
+
+            @Override
+            protected void canceled(@NonNull final DownloadTask task) {
+
+            }
+
+            @Override
+            protected void error(@NonNull final DownloadTask task, @NonNull final Exception e) {
+                Toast.makeText(MainActivity.this, "Cannot download the file with error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            protected void warn(@NonNull final DownloadTask task) {
+
             }
         };
 
-        final FileDownloader fileDownloader = FileDownloader.getImpl();
-        fileDownloader
-                .create(url)
-                .setPath(DOWNLOAD_PATH)
-                .addFinishListener(downloadFinishedListener)
-                .setListener(fileDownloadListener)
-                .setAutoRetryTimes(1)
-                .asInQueueTask()
-                .enqueue();
-        fileDownloader.start(fileDownloadListener, false);
+        final DownloadTask task = new DownloadTask.Builder(url, file)
+                .setMinIntervalMillisCallbackProcess(300)
+                .build();
+
+        task.enqueue(listener);
     }
 
     private void preparePlayerAndPlay(final String url) {
