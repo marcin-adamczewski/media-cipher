@@ -37,8 +37,8 @@ public class MainActivity extends AppCompatActivity {
     //private static final String SAMPLE_MP3_URL = "http://www.noiseaddicts.com/samples_1w72b820/4246.mp3"; // 0.6 MB
     private static final String SAMPLE_MP3_URL = "http://www.noiseaddicts.com/samples_1w72b820/4352.mp3"; // 3 MB
     //private static final String SAMPLE_MP4_URL = "http://mirrors.standaloneinstaller.com/video-sample/dolbycanyon.mp4"; 3.01 MB
-    //private static final String SAMPLE_MP4_URL = "http://mirrors.standaloneinstaller.com/video-sample/jellyfish-25-mbps-hd-hevc.mp4"; // 31.3 MB
-    private static final String SAMPLE_MP4_URL = "http://mirrors.standaloneinstaller.com/video-sample/small.mp4"; // 0.17 MB
+    private static final String SAMPLE_MP4_URL = "http://mirrors.standaloneinstaller.com/video-sample/jellyfish-25-mbps-hd-hevc.mp4"; // 31.3 MB
+    //private static final String SAMPLE_MP4_URL = "http://mirrors.standaloneinstaller.com/video-sample/small.mp4"; // 0.17 MB
 
     private static final String DOWNLOAD_PATH = Environment
             .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)

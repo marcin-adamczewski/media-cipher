@@ -3,7 +3,6 @@ package com.appunite.mediacipher;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.NonNull;
 
 import com.appunite.mediacipher.crypto.AESCrypter;
 import com.appunite.mediacipher.crypto.AESCrypterBelowM;
@@ -13,9 +12,7 @@ import com.appunite.mediacipher.crypto.exoplayer.EncryptedFileDataSourceFactory;
 import com.appunite.mediacipher.helpers.Checker;
 import com.appunite.mediacipher.helpers.VersionsUtils;
 import com.google.android.exoplayer2.upstream.DataSource;
-import com.liulishuo.okdownload.DownloadTask;
 import com.liulishuo.okdownload.OkDownload;
-import com.liulishuo.okdownload.core.download.DownloadStrategy;
 
 import java.io.File;
 
@@ -33,17 +30,17 @@ public final class MediaCipher {
     private final OkDownload.Builder okDownloadBuilder;
 
     public static MediaCipher init(@Nonnull final Context applicationContext, @Nonnull final Listener listener) {
-        return init(applicationContext, new Config(), listener, null);
+        return init(applicationContext, new Config(), null, listener);
     }
 
     public static MediaCipher init(@Nonnull final Context applicationContext, @Nonnull Config config, @Nonnull final Listener listener) {
-        return init(applicationContext, config, listener, null);
+        return init(applicationContext, config, null, listener);
     }
 
     public static MediaCipher init(@Nonnull final Context applicationContext,
                                    @Nonnull final Config config,
-                                   @Nonnull final Listener listener,
-                                   @Nullable final OkDownload.Builder okDownloadBuilder) {
+                                   @Nullable final OkDownload.Builder okDownloadBuilder,
+                                   @Nonnull final Listener listener) {
         Checker.checkArgument(!(applicationContext instanceof Activity), "You have to pass application context instead of activity.");
         Checker.checkArgument(listener != null, "You have to pass Listener to handle keystore error. More in README");
 
@@ -79,13 +76,7 @@ public final class MediaCipher {
 
     private void initializeFileDownloadManager() {
         okDownloadBuilder
-                .outputStreamFactory(new DownloadEncryptingOutputStream.Factory(aesCrypter, listener))
-                .downloadStrategy(new DownloadStrategy() {
-                    @Override
-                    public int determineBlockCount(@NonNull final DownloadTask task, final long totalLength) {
-                        return 1;
-                    }
-                });
+                .outputStreamFactory(new DownloadEncryptingOutputStream.Factory(aesCrypter, listener));
 
         OkDownload.setSingletonInstance(okDownloadBuilder.build());
     }
