@@ -34,8 +34,8 @@ dependencies {
 
     compile 'com.google.android.exoplayer:exoplayer:r2.1.1'
 
-/*    compile 'com.liulishuo.okdownload:okdownload:1.0.0'
-    compile 'com.liulishuo.okdownload:sqlite:1.0.0'*/
+    compile 'com.liulishuo.okdownload:okdownload:1.0.0'
+    compile 'com.liulishuo.okdownload:sqlite:1.0.0'
 
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
 
@@ -43,6 +43,4 @@ dependencies {
 
     provided 'com.google.code.findbugs:jsr305:3.0.1'
     provided 'javax.annotation:jsr250-api:1.0'
-
-    compile project(':okdownload2')
 }

@@ -27,7 +27,6 @@ public final class MediaCipher {
 
     private static volatile MediaCipher singleton;
 
-    private final Context context;
     private final Listener listener;
     private final Config config;
     private final AESCrypter aesCrypter;
@@ -64,7 +63,6 @@ public final class MediaCipher {
                         @Nonnull final Config config,
                         @Nonnull final Listener listener,
                         @Nullable OkDownload.Builder okDownloadBuilder) {
-        this.context = context;
         this.config = config;
         this.listener = listener;
         this.okDownloadBuilder = okDownloadBuilder == null ? new OkDownload.Builder(context) : okDownloadBuilder;
