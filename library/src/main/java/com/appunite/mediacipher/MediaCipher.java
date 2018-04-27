@@ -7,50 +7,42 @@ import android.content.Context;
 import com.appunite.mediacipher.crypto.AESCrypter;
 import com.appunite.mediacipher.crypto.AESCrypterBelowM;
 import com.appunite.mediacipher.crypto.AESCrypterMPlus;
-import com.appunite.mediacipher.crypto.download.EncryptingOutputStreamCreator;
+import com.appunite.mediacipher.crypto.download.EncryptingDownloader;
 import com.appunite.mediacipher.crypto.exoplayer.EncryptedFileDataSourceFactory;
 import com.appunite.mediacipher.helpers.Checker;
-import com.appunite.mediacipher.helpers.Logger;
 import com.appunite.mediacipher.helpers.VersionsUtils;
 import com.google.android.exoplayer2.upstream.DataSource;
-import com.liulishuo.filedownloader.FileDownloader;
-import com.liulishuo.filedownloader.services.DownloadMgrInitialParams;
 
 import java.io.File;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+
+import okhttp3.OkHttpClient;
 
 
 public final class MediaCipher {
 
     private static volatile MediaCipher singleton;
 
-    private final Context context;
-    private final Listener listener;
-    private final Config config;
-    private final AESCrypter aesCrypter;
-    private final DownloadMgrInitialParams.InitCustomMaker initCustomMaker;
+    @Nonnull private final Listener listener;
+    @Nonnull private final Config config;
+    @Nonnull private final AESCrypter aesCrypter;
 
-    public static MediaCipher init(@Nonnull final Context applicationContext, @Nonnull final Listener listener) {
-        return init(applicationContext, new Config(), listener, null);
-    }
-
-    public static MediaCipher init(@Nonnull final Context applicationContext, @Nonnull Config config, @Nonnull final Listener listener) {
-        return init(applicationContext, config, listener, null);
+    public static MediaCipher init(@Nonnull final Context applicationContext,
+                                   @Nonnull final Listener listener) {
+        return init(applicationContext, new Config(), listener);
     }
 
     public static MediaCipher init(@Nonnull final Context applicationContext,
                                    @Nonnull final Config config,
-                                   @Nonnull final Listener listener,
-                                   @Nullable final DownloadMgrInitialParams.InitCustomMaker initCustomMaker) {
+                                   @Nonnull final Listener listener) {
         Checker.checkArgument(!(applicationContext instanceof Activity), "You have to pass application context instead of activity.");
         Checker.checkArgument(listener != null, "You have to pass Listener to handle keystore error. More in README");
 
         if (singleton == null) {
             synchronized (MediaCipher.class) {
                 if (singleton == null) {
-                    singleton = new MediaCipher(applicationContext, config, listener, initCustomMaker);
+                    singleton = new MediaCipher(applicationContext, config, listener);
                     singleton.internalInit();
                 }
             }
@@ -61,12 +53,9 @@ public final class MediaCipher {
 
     private MediaCipher(@Nonnull final Context context,
                         @Nonnull final Config config,
-                        @Nonnull final Listener listener,
-                        @Nullable DownloadMgrInitialParams.InitCustomMaker initCustomMaker) {
-        this.context = context;
+                        @Nonnull final Listener listener) {
         this.config = config;
         this.listener = listener;
-        this.initCustomMaker = initCustomMaker == null ? new DownloadMgrInitialParams.InitCustomMaker() : initCustomMaker;
         final KeysPreferences keysPreferences = new KeysPreferences(context);
         this.aesCrypter = VersionsUtils.isAtLeastMarshMallow() ?
                 new AESCrypterMPlus(context, keysPreferences) : new AESCrypterBelowM(context, keysPreferences);
@@ -75,21 +64,15 @@ public final class MediaCipher {
 
     private void internalInit() {
         aesCrypter.init();
-        initializeFileDownloadManager();
-    }
-
-    private void initializeFileDownloadManager() {
-        try {
-            initCustomMaker.outputStreamCreator(new EncryptingOutputStreamCreator(aesCrypter, listener));
-            FileDownloader.init(context, initCustomMaker);
-        } catch (Exception e) {
-            Logger.logError("Cannot initialize file downloader: " + e.getMessage());
-            listener.onError(e);
-        }
     }
 
     private static void checkInitialized() {
         Checker.checkArgument(singleton != null, "You must call init(...) method first.");
+    }
+
+    @Nonnull
+    public EncryptingDownloader getEncryptingDownloader(@Nonnull OkHttpClient okHttpClient) {
+        return new EncryptingDownloader(okHttpClient, aesCrypter, listener);
     }
 
     @Nonnull
