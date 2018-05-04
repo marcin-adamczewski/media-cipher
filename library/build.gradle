@@ -33,10 +33,10 @@ dependencies {
     compile 'com.google.android.exoplayer:exoplayer:r2.1.1'
 
     // Download
-    compile ("com.tonyodev.fetch2:fetch2:2.0.0-RC17") {
+    compile ("com.tonyodev.fetch2:fetch2:2.0.0-RC18") {
         exclude group: 'com.android.support'
     }
-    compile ("com.tonyodev.fetch2downloaders:fetch2downloaders:2.0.0-RC17") {
+    compile ("com.tonyodev.fetch2downloaders:fetch2downloaders:2.0.0-RC19") {
         exclude group: 'com.android.support'
     }
     compile 'com.squareup.okhttp3:okhttp:3.10.0'

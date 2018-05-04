@@ -16,29 +16,34 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.appunite.mediacipher.MediaCipher;
-import com.appunite.mediacipher.crypto.download.EncryptingDownloader;
 import com.appunite.mediacipher.helpers.Checker;
 import com.appunite.mediaenryption.R;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.tonyodev.fetch2.AbstractFetchListener;
 import com.tonyodev.fetch2.Download;
+import com.tonyodev.fetch2.Error;
 import com.tonyodev.fetch2.Fetch;
 import com.tonyodev.fetch2.FetchListener;
 import com.tonyodev.fetch2.Func;
 import com.tonyodev.fetch2.Request;
+import com.tonyodev.fetch2.RequestOptions;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import okhttp3.OkHttpClient;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String EXTRA_URL = "extra_url";
-    private static final String SAMPLE_MP3_URL = "http://www.noiseaddicts.com/samples_1w72b820/4250.mp3";
-    private static final String SAMPLE_MP4_URL = "https://dwknz3zfy9iu1.cloudfront.net/uscenes_h-264_hd_test.mp4";
+    //private static final String SAMPLE_MP3_URL = "http://www.noiseaddicts.com/samples_1w72b820/4250.mp3"; // 0.6 MB
+    private static final String SAMPLE_MP3_URL = "http://www.noiseaddicts.com/samples_1w72b820/4208.mp3"; // 1.3 MB
+    //private static final String SAMPLE_MP3_URL = "http://www.noiseaddicts.com/samples_1w72b820/4246.mp3"; // 0.6 MB
+    //private static final String SAMPLE_MP3_URL = "http://www.noiseaddicts.com/samples_1w72b820/4352.mp3"; // 3 MB
+    //private static final String SAMPLE_MP4_URL = "http://mirrors.standaloneinstaller.com/video-sample/dolbycanyon.mp4"; 3.01 MB
+    private static final String SAMPLE_MP4_URL = "http://mirrors.standaloneinstaller.com/video-sample/jellyfish-25-mbps-hd-hevc.mp4"; // 31.3 MB
+    //private static final String SAMPLE_MP4_URL = "http://mirrors.standaloneinstaller.com/video-sample/small.mp4"; // 0.17 MB
 
     private static final String DOWNLOAD_PATH = Environment
             .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
@@ -56,16 +61,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        OkHttpClient okHttp = new OkHttpClient.Builder()
-                .build();
-
-        fetch = new Fetch.Builder(this, "EncryptingFetch")
-                .setDownloadConcurrentLimit(3)
-                .enableLogging(SHOW_LOGS)
-                .setProgressReportingInterval(300)
-                .enableRetryOnNetworkGain(true)
-                .setDownloader(MediaCipher.getInstance().getEncryptingDownloader(okHttp)) // most important part
-                .build();
+        setupFetch();
 
         mediaDownloadUrl = getIntent().getStringExtra(EXTRA_URL);
         mediaDownloadUrl = mediaDownloadUrl == null ? SAMPLE_MP3_URL : mediaDownloadUrl;
@@ -126,8 +122,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         final Request request = new Request(url.hashCode(), url, DOWNLOAD_PATH);
-        fetch.delete(request.getId());
-        fetch.enqueue(request, null, null);
+        fetch.enqueue(request, null, new Func<Error>() {
+            @Override
+            public void call(Error error) {
+                Toast.makeText(MainActivity.this,
+                        "Cannot download file with error: " + error,
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void preparePlayerAndPlay(final String url) {
@@ -137,8 +139,20 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Toast.makeText(this, "Cannot load media with error: " + e.getMessage(),
                     Toast.LENGTH_LONG).show();
-            e.printStackTrace();
         }
+    }
+
+    private void setupFetch() {
+        OkHttpClient okHttp = new OkHttpClient.Builder()
+                .build();
+        fetch = new Fetch.Builder(this, "EncryptingFetch")
+                .setDownloadConcurrentLimit(3)
+                .enableLogging(SHOW_LOGS)
+                .setProgressReportingInterval(300)
+                .enableRetryOnNetworkGain(true)
+                .addRequestOptions(RequestOptions.REPLACE_ALL_ON_ENQUEUE_WHERE_UNIQUE_FRESH)
+                .setDownloader(MediaCipher.getInstance().getEncryptingDownloader(okHttp)) // most important part
+                .build();
     }
 
     private void assertThatDownloadedFileIsNotMediaFile() {

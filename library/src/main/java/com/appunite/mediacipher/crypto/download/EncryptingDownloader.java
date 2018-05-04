@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,7 +34,8 @@ public class EncryptingDownloader extends OkHttpDownloader {
     @Override
     public OutputStream getRequestOutputStream(@NotNull Request request, long filePointerOffset) {
         try {
-            FileOutputStream fileOutputStream = new FileOutputStream(request.getFile(), true);
+            final FileOutputStream fileOutputStream = new FileOutputStream(
+                    request.getFile(), filePointerOffset > 0);
             return aesCrypter.getEncryptingStream(fileOutputStream);
         } catch (Exception e) {
             listener.onError(e);
