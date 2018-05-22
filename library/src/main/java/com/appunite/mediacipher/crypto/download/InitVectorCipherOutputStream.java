@@ -13,8 +13,38 @@ import javax.crypto.CipherOutputStream;
  */
 public class InitVectorCipherOutputStream extends CipherOutputStream {
 
-    public InitVectorCipherOutputStream(final OutputStream os, final Cipher cipher, final byte[] initVector) throws IOException {
+    private final byte[] initVector;
+    private boolean firstWrite = true;
+
+    public InitVectorCipherOutputStream(final OutputStream os,
+                                        final Cipher cipher,
+                                        final byte[] initVector) {
         super(os, cipher);
-        os.write(initVector);
+        this.initVector = initVector;
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+        writeInitVectorIfNeeded();
+        super.write(b);
+    }
+
+    @Override
+    public void write(byte[] b) throws IOException {
+        writeInitVectorIfNeeded();
+        super.write(b);
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+        writeInitVectorIfNeeded();
+        super.write(b, off, len);
+    }
+
+    private void writeInitVectorIfNeeded() throws IOException {
+        if (firstWrite) {
+            out.write(initVector);
+            firstWrite = false;
+        }
     }
 }

@@ -27,6 +27,7 @@ public abstract class AESCrypter {
     private static final int INIT_VECTOR_SIZE = 16;
     protected static final String ANDROID_KEY_STORE = "AndroidKeyStore";
 
+    private final SecureRandom ivGenerator = new SecureRandom();
     protected final Context context;
     protected final KeysPreferences keysPreferences;
     protected KeyStore keyStore;
@@ -178,7 +179,7 @@ public abstract class AESCrypter {
 
     private byte[] generateInitializationVector() {
         final byte[] bytesToFill = new byte[INIT_VECTOR_SIZE];
-        new SecureRandom().nextBytes(bytesToFill);
+        ivGenerator.nextBytes(bytesToFill);
         return bytesToFill;
     }
 
