@@ -81,6 +81,11 @@ public final class MediaCipher {
     }
 
     @Nonnull
+    public AESCrypter getAesCrypter() {
+        return aesCrypter;
+    }
+
+    @Nonnull
     public static MediaCipher getInstance() {
         checkInitialized();
         return singleton;
