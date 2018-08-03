@@ -3,6 +3,7 @@ package com.appunite.mediacipher;
 
 import android.app.Activity;
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 import com.appunite.mediacipher.crypto.AESCrypter;
 import com.appunite.mediacipher.crypto.AESCrypterBelowM;
@@ -57,9 +58,22 @@ public final class MediaCipher {
         this.config = config;
         this.listener = listener;
         final KeysPreferences keysPreferences = new KeysPreferences(context);
-        this.aesCrypter = VersionsUtils.isAtLeastMarshMallow() ?
-                new AESCrypterMPlus(context, keysPreferences) : new AESCrypterBelowM(context, keysPreferences);
+        this.aesCrypter = getAesCrypter(context, keysPreferences);
         aesCrypter.setListener(listener);
+    }
+
+    @NonNull
+    private AESCrypter getAesCrypter(@Nonnull Context context, KeysPreferences keysPreferences) {
+        final String encryptedAESKey = keysPreferences.getEncryptedAESKey();
+        final boolean isUserAlreadyUsingOldEncryptionMethod = encryptedAESKey != null;
+        final boolean shouldUseOldEncryptionMethod = isUserAlreadyUsingOldEncryptionMethod ||
+                !VersionsUtils.isAtLeastMarshMallow();
+
+        // Even though user has Marshmallow we cannot use newer encryption method
+        // if he was already using old method before (e.g. before system update to Marshmallow)
+        // because we couldn't decrypt already encrypted data with old method using new method (different keys).
+        return shouldUseOldEncryptionMethod ?
+                new AESCrypterBelowM(context, keysPreferences) : new AESCrypterMPlus(context, keysPreferences);
     }
 
     private void internalInit() {
