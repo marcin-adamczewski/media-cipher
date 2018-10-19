@@ -10,7 +10,6 @@ import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,15 +18,19 @@ import com.appunite.mediacipher.MediaCipher;
 import com.appunite.mediacipher.helpers.Checker;
 import com.appunite.mediaenryption.R;
 import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import com.google.android.exoplayer2.ui.PlayerView;
 import com.tonyodev.fetch2.AbstractFetchListener;
 import com.tonyodev.fetch2.Download;
+import com.tonyodev.fetch2.EnqueueAction;
 import com.tonyodev.fetch2.Error;
 import com.tonyodev.fetch2.Fetch;
+import com.tonyodev.fetch2.FetchConfiguration;
 import com.tonyodev.fetch2.FetchListener;
-import com.tonyodev.fetch2.Func;
 import com.tonyodev.fetch2.Request;
-import com.tonyodev.fetch2.RequestOptions;
+import com.tonyodev.fetch2core.Func;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
         downloadingProgressTv = findViewById(R.id.downloading_progress_tv);
 
-        final SimpleExoPlayerView exoPlayerView = findViewById(R.id.exoplayerview);
+        final PlayerView exoPlayerView = findViewById(R.id.exoplayerview);
         exoPlayer = ExoHelper.simpleInstance(this);
         exoPlayerView.setPlayer(exoPlayer);
 
@@ -80,12 +83,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        findViewById(R.id.init_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                downloadFile(mediaDownloadUrl);
-            }
-        });
+        findViewById(R.id.init_btn).setOnClickListener(v -> downloadFile(mediaDownloadUrl));
 
         final FetchListener fileDownloadListener = new AbstractFetchListener() {
             @Override
@@ -106,11 +104,12 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(Download download) {
-                super.onError(download);
+            public void onError(@NotNull Download download, @NotNull Error error, @Nullable Throwable throwable) {
+                super.onError(download, error, throwable);
                 Toast.makeText(MainActivity.this, "Cannot download the file with error: "
                         + download.getError().getThrowable(), Toast.LENGTH_LONG).show();
             }
+
         };
         fetch.addListener(fileDownloadListener);
 
@@ -121,10 +120,11 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        final Request request = new Request(url.hashCode(), url, DOWNLOAD_PATH);
+        final Request request = new Request(url, DOWNLOAD_PATH);
+        request.setEnqueueAction(EnqueueAction.REPLACE_EXISTING);
         fetch.enqueue(request, null, new Func<Error>() {
             @Override
-            public void call(Error error) {
+            public void call(@NonNull Error error) {
                 Toast.makeText(MainActivity.this,
                         "Cannot download file with error: " + error,
                         Toast.LENGTH_LONG).show();
@@ -143,16 +143,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupFetch() {
-        OkHttpClient okHttp = new OkHttpClient.Builder()
-                .build();
-        fetch = new Fetch.Builder(this, "EncryptingFetch")
-                .setDownloadConcurrentLimit(3)
-                .enableLogging(SHOW_LOGS)
-                .setProgressReportingInterval(300)
+        OkHttpClient okHttp = new OkHttpClient.Builder().build();
+
+        FetchConfiguration configuration = new FetchConfiguration.Builder(this)
+                .setDownloadConcurrentLimit(5)
+                .setProgressReportingInterval(500)
                 .enableRetryOnNetworkGain(true)
-                .addRequestOptions(RequestOptions.REPLACE_ALL_ON_ENQUEUE_WHERE_UNIQUE_FRESH)
-                .setDownloader(MediaCipher.getInstance().getEncryptingDownloader(okHttp)) // most important part
+                .setHttpDownloader(MediaCipher.getInstance().getEncryptingDownloader(okHttp))
                 .build();
+
+        fetch = Fetch.Impl.getInstance(configuration);
     }
 
     private void assertThatDownloadedFileIsNotMediaFile() {

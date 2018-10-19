@@ -3,12 +3,14 @@ package com.appunite.mediacipher.crypto.download;
 import com.appunite.mediacipher.Listener;
 import com.appunite.mediacipher.crypto.AESCrypter;
 import com.appunite.mediacipher.helpers.Logger;
-import com.tonyodev.fetch2downloaders.OkHttpDownloader;
+import com.tonyodev.fetch2core.OutputResourceWrapper;
+import com.tonyodev.fetch2okhttp.OkHttpDownloader;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 
 import javax.annotation.Nonnull;
@@ -23,28 +25,51 @@ public class EncryptingDownloader extends OkHttpDownloader {
     public EncryptingDownloader(@Nonnull OkHttpClient okHttpClient,
                                 @Nonnull AESCrypter aesCrypter,
                                 @Nonnull Listener listener) {
-        super(okHttpClient);
+        super(okHttpClient, FileDownloaderType.SEQUENTIAL);
         this.aesCrypter = aesCrypter;
         this.listener = listener;
     }
 
     @Nullable
     @Override
-    public OutputStream getRequestOutputStream(@NotNull Request request, long filePointerOffset) {
+    public OutputResourceWrapper getRequestOutputResourceWrapper(@NotNull ServerRequest request) {
         try {
             final FileOutputStream fileOutputStream = new FileOutputStream(
                     request.getFile(), false);
-            return aesCrypter.getEncryptingStream(fileOutputStream);
+            return new MyOutResourceWrapper(aesCrypter.getEncryptingStream(fileOutputStream));
         } catch (Exception e) {
             listener.onError(e);
             Logger.logError("Cannot create EncryptingDownloader with error: " + e.getMessage());
             return null;
         }
     }
+}
 
-    @NotNull
+class MyOutResourceWrapper extends OutputResourceWrapper {
+
+    private final OutputStream stream;
+
+    MyOutResourceWrapper(OutputStream stream) {
+        this.stream = stream;
+    }
+
     @Override
-    public FileDownloaderType getFileDownloaderType(Request request) {
-        return FileDownloaderType.SEQUENTIAL;
+    public void flush() throws IOException {
+        stream.flush();
+    }
+
+    @Override
+    public void setWriteOffset(long l) throws IOException {
+
+    }
+
+    @Override
+    public void write(@NotNull byte[] bytes, int off, int len) throws IOException {
+        stream.write(bytes, off, len);
+    }
+
+    @Override
+    public void close() throws IOException {
+        stream.close();
     }
 }

@@ -1,34 +1,55 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 27
     defaultConfig {
         applicationId "com.appunite.mediaenryption"
         minSdkVersion 18
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation project(":library")
+
+    def archVersion = "1.1.1"
+    configurations.all {
+        resolutionStrategy.force "android.arch.core:runtime:$archVersion"
+        resolutionStrategy.force "android.arch.core:common:$archVersion"
+    }
+
+    implementation 'com.google.android.exoplayer:exoplayer:2.9.0'
+
+    def fetchVersion = "2.2.0-RC14"
+    implementation ("com.tonyodev.fetch2:fetch2:$fetchVersion") {
+        exclude group: 'com.android.support'
+    }
+    implementation ("com.tonyodev.fetch2okhttp:fetch2okhttp:$fetchVersion") {
+        exclude group: 'com.android.support'
+    }
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:26.1.0'
-    testCompile 'junit:junit:4.12'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    testImplementation 'junit:junit:4.12'
 
-    provided 'com.google.code.findbugs:jsr305:3.0.1'
-    provided 'javax.annotation:jsr250-api:1.0'
-
-    compile project(path: ':library')
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+    compileOnly 'javax.annotation:jsr250-api:1.0'
 }

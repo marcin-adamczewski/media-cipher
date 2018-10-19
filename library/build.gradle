@@ -4,12 +4,11 @@ apply plugin: 'com.github.dcendents.android-maven'
 group='com.github.marcin-adamczewski'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 27
 
     defaultConfig {
         minSdkVersion 18
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
 
@@ -25,31 +24,33 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    compile 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
 
     // Media Player
-    compile 'com.google.android.exoplayer:exoplayer:r2.1.1'
+    implementation 'com.google.android.exoplayer:exoplayer:2.9.0'
 
     // Download
-    compile ("com.tonyodev.fetch2:fetch2:2.0.0-RC21") {
+    def fetchVersion = "2.2.0-RC14"
+    implementation ("com.tonyodev.fetch2:fetch2:$fetchVersion") {
         exclude group: 'com.android.support'
     }
-    compile ("com.tonyodev.fetch2downloaders:fetch2downloaders:2.0.0-RC21") {
+    implementation ("com.tonyodev.fetch2okhttp:fetch2okhttp:$fetchVersion") {
         exclude group: 'com.android.support'
     }
-    compile 'com.squareup.okhttp3:okhttp:3.10.0'
+
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
 
     // Inter-processes preferences
-    compile 'net.grandcentrix.tray:tray:0.12.0'
+    implementation 'net.grandcentrix.tray:tray:0.12.0'
 
-    provided 'com.google.code.findbugs:jsr305:3.0.1'
-    provided 'javax.annotation:jsr250-api:1.0'
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+    compileOnly 'javax.annotation:jsr250-api:1.0'
 
     // Tests
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 }

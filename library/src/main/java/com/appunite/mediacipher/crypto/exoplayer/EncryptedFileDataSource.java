@@ -6,17 +6,21 @@ import android.net.Uri;
 import com.appunite.mediacipher.crypto.DecryptingKeys;
 import com.appunite.mediacipher.crypto.InitVectorFileInputStream;
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.upstream.BaseDataSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
+import com.google.android.exoplayer2.upstream.TransferListener;
 
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 
 
-public final class EncryptedFileDataSource implements DataSource {
+public final class EncryptedFileDataSource extends BaseDataSource {
 
     private final DecryptingKeys decryptingKeys;
     private StreamingCipherInputStream mInputStream;
@@ -25,6 +29,7 @@ public final class EncryptedFileDataSource implements DataSource {
     private boolean mOpened;
 
     public EncryptedFileDataSource(@Nonnull final DecryptingKeys decryptingKeys) {
+        super(false);
         this.decryptingKeys = decryptingKeys;
     }
 
