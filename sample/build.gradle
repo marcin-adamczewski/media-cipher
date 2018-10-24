@@ -35,7 +35,7 @@ dependencies {
 
     implementation 'com.google.android.exoplayer:exoplayer:2.9.0'
 
-    def fetchVersion = "2.2.0-RC14"
+    def fetchVersion = "2.2.0-RC15"
     implementation ("com.tonyodev.fetch2:fetch2:$fetchVersion") {
         exclude group: 'com.android.support'
     }
