@@ -29,7 +29,7 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'
 
     // Media Player
-    implementation 'com.google.android.exoplayer:exoplayer:2.9.0'
+    implementation 'com.google.android.exoplayer:exoplayer:2.9.2'
 
     // Download
     def fetchVersion = "2.2.0-RC15"
